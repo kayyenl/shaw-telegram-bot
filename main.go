@@ -1,193 +1,35 @@
 package main
 
 import (
-	"log"
-	"errors"
+	"context"
+	"os"
+	"os/signal"
+
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 )
 
+// Send any text message to the bot after the bot has been started
 
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
-	err := errors.New("This is the first new error")
+	opts := []bot.Option{
+		bot.WithDefaultHandler(handler),
+	}
 
-	log.Panic(err)
+	b, err := bot.New("YOUR_BOT_TOKEN_FROM_BOTFATHER", opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	b.Start(ctx)
 }
 
-
-// planning:
-
-// 1. make all connections needed to the botfather
-// 2. pull data from the shaw endpoint: 
-
-
-// 1. GET method: https://shaw.sg/get_location?id=4
-// {
-    "description": "<p>On 24th Sep 2021, the brand new Shaw Theatres Lot One opened with twice the number of halls than before; a total of eight digital halls with the latest laser and sound equipment. A major overhaul that took over a year to complete with new screens and seats!</p>\r\n\r\n<p>Movie-goers from neighboring districts can now conveniently be entertained with a fantastic movie experience!</p>\r\n\r\n<p>Still at level 5, the box office is now just round the corner where it was. Customers can buy their tickets on our self-service kiosks or over the counter where they can also get their favourite popcorn and drinks!</p>\r\n\r\n\r\n<p>Shoppers can gain access to Lot One via Level 1 Entrance (Next to McDonald's) and Basement 2 Carpark Entrance.</p>",
-    "displayWeight": 8,
-    "mapLink": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3988.6525457711605!2d103.7428642!3d1.385093!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da11e98d555f8b%3A0xadf35caa47e8aa59!2sShaw+Theatres+Lot+One!5e0!3m2!1sen!2ssg!4v1526883294620",
-    "wheelchairAccessRoute": "<p>1. By public bus<br/>(wheelchair-accessible bus services)<br/>Alight from Choa Chu Kang Bus interchange and walk for 5 minutes under the shelter to Lot One Shopping Centre.<br/>Use the passengers’ lift/cargo lift which located at level 1 to go up to the Box Office at level 5.<br/> <br/>2. By taxi<br/>(get off point for nearest wheel chair access)<br/> Alight at Lot One Shopping Centre drop off point/taxi stand. Using the passengers’ lift/cargo lift which located at Level 1 to go up to the Box Office at Level 5. Shaw Theatres handicapped lift is accessible from Level 1 but Patrons need to proceed at Level 5 to alert managers/ staff for assistance as the Level 6 area is locked.<br/> <br/>3. By MRT<br/>Alight at Choa Chu Kang MRT station and Exit from Exit A or E to Lot One Shopping Centre. Using the passengers’ lift/cargo lift which located at level 1 to go up to the Box Office at Level 5. Shaw Theatres handicapped lift is accessible from Level 1 but Patrons please note to proceed at Level 5 to alert managers/ staff for assistance as the Level 6 area is locked.<br/> <br/>4. By car<br/>Alight at Lot One Shopping Centre car park which located at Basement 2 and Basement 3. Using passengers lift to go up to the Box Office at Level 5. Please take note there’s no lift from B3, patrons will go by travelator going to B2. From B2, lift is accessible to Level 5/Level 6.</p>",
-    "isActive": true,
-    "id": 4,
-    "code": "0400",
-    "name": "Shaw Theatres Lot One",
-    "brands": 0,
-    "address": "21,\n\t Choa Chu Kang Ave 4,\n\t 5th/6th Floor,\n\t Lot 1 Shoppers' Mall,\n\t Singapore 689812",
-    "poster": "https://shawsgqk.gumlet.io/fetch/https://snow-shaw-cdn.azureedge.net/prd/content/images/location/default/en-sg/Shaw-CCK_283x415pix(v2)-Poster.jpg?w=300&dpr=1.0"
+func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   update.Message.Text,
+	})
 }
-
-// 2. GET METHOD https://shaw.sg/get_show_times?date=2025-09-07&locationId=4
-// date=2025-09-07&locationId=4
-[
-    {
-        "movieId": 941,
-        "movieReleaseId": 1413,
-        "primaryTitle": "Dead to Rights (M)",
-        "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1413-Poster-1755485759469",
-        "duration": 137,
-        "classifyCode": "NC16",
-        "restrictionCode": "NR",
-        "movieBrand": "DGTL",
-        "adviceName": "Violence",
-        "showTimes": [
-            {
-                "performanceId": 387740,
-                "displayDate": "2025-09-07",
-                "displayTime": "1:30 PM",
-                "locationId": 4,
-                "locationVenueId": 10,
-                "locationVenueName": "Lot One Hall 4",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1413,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1413-Poster-1755485759469",
-                "duration": 137,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Dead to Rights (M)",
-                "isDtsx": false
-            },
-            {
-                "performanceId": 387725,
-                "displayDate": "2025-09-07",
-                "displayTime": "4:30 PM",
-                "locationId": 4,
-                "locationVenueId": 10,
-                "locationVenueName": "Lot One Hall 4",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1413,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1413-Poster-1755485759469",
-                "duration": 137,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Dead to Rights (M)",
-                "isDtsx": false
-            },
-            {
-                "performanceId": 387737,
-                "displayDate": "2025-09-07",
-                "displayTime": "7:30 PM",
-                "locationId": 4,
-                "locationVenueId": 10,
-                "locationVenueName": "Lot One Hall 4",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1413,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1413-Poster-1755485759469",
-                "duration": 137,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Dead to Rights (M)",
-                "isDtsx": false
-            }
-        ]
-    },
-    {
-        "movieId": 833,
-        "movieReleaseId": 1282,
-        "primaryTitle": "Demon Slayer: Kimetsu no Yaiba Infinity Castle  (JAP)",
-        "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1282-Poster-1754035744264",
-        "duration": 155,
-        "classifyCode": "NC16",
-        "restrictionCode": "NR",
-        "movieBrand": "DGTL",
-        "adviceName": "Violence And Some Coarse Language",
-        "showTimes": [
-            {
-                "performanceId": 387681,
-                "displayDate": "2025-09-07",
-                "displayTime": "2:00 PM",
-                "locationId": 4,
-                "locationVenueId": 7,
-                "locationVenueName": "Lot One Hall 1",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1282,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1282-Poster-1754035744264",
-                "duration": 155,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Demon Slayer: Kimetsu no Yaiba Infinity Castle  (JAP)",
-                "isDtsx": false
-            },
-            {
-                "performanceId": 387690,
-                "displayDate": "2025-09-07",
-                "displayTime": "5:15 PM",
-                "locationId": 4,
-                "locationVenueId": 7,
-                "locationVenueName": "Lot One Hall 1",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1282,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1282-Poster-1754035744264",
-                "duration": 155,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Demon Slayer: Kimetsu no Yaiba Infinity Castle  (JAP)",
-                "isDtsx": false
-            },
-            {
-                "performanceId": 387670,
-                "displayDate": "2025-09-07",
-                "displayTime": "8:30 PM",
-                "locationId": 4,
-                "locationVenueId": 7,
-                "locationVenueName": "Lot One Hall 1",
-                "seatingStatus": "AV",
-                "isMidnight": false,
-                "locationVenueBrandCode": "DGTL",
-                "formatCode": "DGSD",
-                "subtitleCode": "ECSB",
-                "movieReleaseId": 1282,
-                "posterUrl": "https://snow-shaw-cdn.azureedge.net/prd/content/images/movie/default/en-sg/1282-Poster-1754035744264",
-                "duration": 155,
-                "restrictionCode": "NR",
-                "brandCode": "DGTL",
-                "classifyCode": "NC16",
-                "primaryTitle": "Demon Slayer: Kimetsu no Yaiba Infinity Castle  (JAP)",
-                "isDtsx": false
-            }
-        ]
-    }
-]

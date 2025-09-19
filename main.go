@@ -18,8 +18,10 @@ func main() {
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler),
 	}
-
-	b, err := bot.New("YOUR_BOT_TOKEN_FROM_BOTFATHER", opts...)
+    
+    // get telegram token from terminal and handle if token cannot be gotten
+    token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	b, err := bot.New(token, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -30,6 +32,6 @@ func main() {
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
+		Text:   "Hi there!",
 	})
 }

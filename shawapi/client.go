@@ -1,6 +1,9 @@
 package shawapi
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 // These structs will define how the json item returned from shaw will look like to us,
 // After we have unmarshalled it from shaw endpoint.
@@ -25,3 +28,14 @@ type ShawClient struct {
 	HTTPClient *http.Client
 }
 
+// go idiom: for this constructor, we choose to return ShawClient as an address because we are going to pass
+// this struct around, and not creating copies on the fly. Thus to be memory savvy and to retain info in the client as we pass it down the function calls, we refer to the same address throughout the client call being made to shaw.
+func NewClient() *ShawClient {
+	
+	return &ShawClient{
+		BaseUrl: shawBaseUrl,
+		HTTPClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
+	}
+}

@@ -6,7 +6,6 @@ import (
 	"os/signal"
 
 	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
 )
 
 // Send any text message to the bot after the bot has been started
@@ -18,7 +17,7 @@ func main() {
 	// configure the new bot by placing With functions in the opts object,
 	// part of the functional options pattern, making it easier to init structs when too many params.
 	opts := []bot.Option{
-		bot.WithDefaultHandler(handler),
+		bot.WithDefaultHandler(defaultHandler),
 	}
     
     // get telegram token from terminal and handle if token cannot be gotten
@@ -38,10 +37,3 @@ func main() {
 // when machine running this code receives HTTP response from long polling Telegram API,
 // the internal code of this machine deserializes it into models.Update struct. 
 // Then our b.SendMessage functionality takes these info from update, and makes use of it (find chatID who sent it here, in order to send it back, etc.)
-
-func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   "Hi there!",
-	})
-}

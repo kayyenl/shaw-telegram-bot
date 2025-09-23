@@ -36,7 +36,8 @@ func main() {
 
 	// blocks forever, listening for incoming HTTP requests coming from Telegram.
 	// known as a receiver.
-	http.ListenAndServe(":2000", )
+	http.ListenAndServe(":2000", b.WebhookHandler())
+	
 }
 
 // explanation of telegram bot

@@ -1,2 +1,4 @@
+github.com/aws/aws-lambda-go v1.49.0 h1:z4VhTqkFZPM3xpEtTqWqRqsRH4TZBMJqTkRiBPYLqIQ=
+github.com/aws/aws-lambda-go v1.49.0/go.mod h1:dpMpZgvWx5vuQJfBt0zqBha60q7Dd7RfgJv23DymV8A=
 github.com/go-telegram/bot v1.17.0 h1:Hs0kGxSj97QFqOQP0zxduY/4tSx8QDzvNI9uVRS+zmY=
 github.com/go-telegram/bot v1.17.0/go.mod h1:i2TRs7fXWIeaceF3z7KzsMt/he0TwkVC680mvdTFYeM=

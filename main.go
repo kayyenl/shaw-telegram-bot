@@ -1,60 +1,74 @@
+// File: main.go
 package main
 
 import (
 	"context"
-	"net/http"
+	"encoding/json"
+	"log"
 	"os"
-	"os/signal"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 )
 
-// Send any text message to the bot after the bot has been started
+// LambdaHandler is the function that AWS Lambda will invoke.
+// this is being invoked every time Telegram sends a request to this Lambda function.
+func LambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-
-	// configure the new bot by placing With functions in the opts object,
-	// part of the functional options pattern, making it easier to init structs when too many params.
-	opts := []bot.Option{
-		bot.WithDefaultHandler(defaultHandler),
-		bot.WithWebhookSecretToken(os.Getenv("TELEGRAM_BOT_TOKEN")),
-	}
-    
-    // get telegram token from terminal and handle if token cannot be gotten
-    token := os.Getenv("TELEGRAM_BOT_TOKEN")
-	b, err := bot.New(token, opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	// takes the updates received by the webserver (the http.ListenAndServe), and dispatches them
-	// to the respective handler functions.
-	// StartWebhook has to run in parallel (in a goroutine), because if not the listenAndServe cannot execute, and will be forever blocked.
-	go b.StartWebhook(ctx)
-
-	// blocks forever, listening for incoming HTTP requests coming from Telegram.
-	// known as a receiver.
-	http.ListenAndServe(":2000", b.WebhookHandler())
 	
+	// 1. Create the bot instance inside the handler.
+	//    The options now include your actual handler logic.
+	opts := []bot.Option{
+		bot.WithDefaultHandler(myBotHandler),
+		// The secret token is validated by API Gateway or in the handler, not by the bot library directly in this mode.
+	}
+
+	b, err := bot.New(os.Getenv("TELEGRAM_BOT_TOKEN"), opts...)
+	if err != nil {
+		log.Printf("failed to create bot: %v", err)
+		return events.APIGatewayProxyResponse{StatusCode: 500}, nil
+	}
+
+	// 2. Parse the update from the incoming request body.
+	var update models.Update
+	err = json.Unmarshal([]byte(request.Body), &update)
+	if err != nil {
+		log.Printf("failed to unmarshal update: %v", err)
+		return events.APIGatewayProxyResponse{StatusCode: 400}, nil
+	}
+
+	// 3. Manually process the update. This is the key difference.
+	//    This call is synchronous and does not block forever.
+	b.ProcessUpdate(ctx, &update)
+
+	// 4. Return a 200 OK response to API Gateway to acknowledge receipt.
+	return events.APIGatewayProxyResponse{StatusCode: 200, Body: "OK"}, nil
 }
 
-// explanation of telegram bot
+// This is your actual bot logic, renamed to avoid conflict.
+func myBotHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   "Hi there from AWS Lambda!",
+	})
+}
+
+// The main function now just starts the Lambda handler.
+func main() {
+	lambda.Start(LambdaHandler)
+}
+
+// explanation of webhooks: 
+// instead of API pattern, which is us call the API, 
+// webhooks call to us whenever some kind of event worth listening to happens.
+// eg. in this case, when the client messages the shaw telegram bot.
+
+// usually, webhooks are HTTP servers which hook (call) to a provided address (which in this case, is our FaaS.)
+// these webhooks make the HTTP requests to our FaaS, and usually it includes some kind of auth so we dont just 
+// accept HTTP requests from anyone (as that could be a hacker). 	
 
 
-// FOR THE NORMAL CASE
-
-// Telegram API is hosted online by Telegram, separate from this code (which runs locally or any method defined by me, different from telegram)
-// When i say "xxx" as a Telegram user to my bot, Telegram backend sees the message and sends it to my machine which should be actively hosting this code. By hosting this code, it is sending a long polling HTTP GET to the Telegram API (hosted by Telegram).
-// when machine running this code receives HTTP response from long polling Telegram API,
-// the internal code of this machine deserializes it into models.Update struct. 
-// Then our b.SendMessage functionality takes these info from update, and makes use of it (find chatID who sent it here, in order to send it back, etc.)
 
 
-// FOR THE WEBHOOK CASE
-
-// Instead of calling Telegram API via long polling to find out if messages are being sent from the telegram client,
-// This backend becomes the server instead. 
-// We register this server's public URL with Telegram instead, and whenever a user sends a message to this bot,
-// Telegram wil send a HTTP POST directly to the registered URL. This server receives it and our handlers handle it.

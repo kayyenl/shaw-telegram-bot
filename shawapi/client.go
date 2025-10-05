@@ -11,12 +11,12 @@ type Movie struct {
 	Title		string `json:"primaryTitle"`
 	PosterUrl 	string `json:"posterUrl"`
 	Duration	string `json:"duration"`
-	ShowTimes	MovieTiming
+	ShowTimes	[]MovieTiming `json:"showTimes"`
 }
 
 type MovieTiming struct {
-	ShowDate	string `json:"displayDate"`
-	ShowTime	string `json:"displayTime"`
+	DisplayDate	string `json:"displayDate"`
+	DisplayTime	string `json:"displayTime"`
 	SeatingStatus string `json:"seatingStatus"`
 }
 
